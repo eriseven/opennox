@@ -120,3 +120,6 @@ You also need a few DLLs for these binaries to work.
    - If it complains about more DDLs - copy them from MSYS.
    - If it says that Nox directory not found - it works!
      Check [this guide](https://mod.io/g/nox/r/how-to-install-opennox-windows) to set Nox game path.
+
+To use localized text and fonts from `locales/<language>/` while sharing the
+original game data, pass `-lang <language>`. See [Localized text and fonts](localization.md).

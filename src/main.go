@@ -33,6 +33,7 @@ import (
 	"github.com/opennox/opennox/v1/common/memmap"
 	"github.com/opennox/opennox/v1/common/serial"
 	"github.com/opennox/opennox/v1/common/sound"
+	"github.com/opennox/opennox/v1/internal/localization"
 	"github.com/opennox/opennox/v1/internal/version"
 	"github.com/opennox/opennox/v1/legacy"
 	"github.com/opennox/opennox/v1/legacy/client/audio/ail"
@@ -90,6 +91,7 @@ func runArgs(args []string, loopFunc func() error) (gerr error) {
 	var (
 		fConfig     = flags.String("config", "", "use specified config file")
 		fData       = flags.String("data", "", "explicitly set Nox data dir")
+		fLang       = flags.String("lang", "", "load text and fonts from <data>/locales/<lang>, falling back to original data")
 		fServer     = flags.Bool("serveronly", false, "run the server only")
 		fWindow     = flags.Bool("window", false, "window")
 		fSWindow    = flags.Bool("swindow", false, "swindow")
@@ -231,7 +233,12 @@ func runArgs(args []string, loopFunc func() error) (gerr error) {
 	isServer = *fAutoServer
 	isServerQuest = *fAutoQuest
 	serverExec = strings.Split(*fAutoExec, ";")
-	if err := noxServer.Strings().ReadFile("nox.str"); err != nil {
+	localeDir, err := localization.Directory(datapath.Data(), *fLang)
+	if err != nil {
+		return err
+	}
+	noxClient.r.Fonts.LocaleDir = localeDir
+	if err := localization.LoadStrings(noxServer.Strings(), datapath.Data(), localeDir); err != nil {
 		return fmt.Errorf("failed to load strings file: %w", err)
 	}
 	if !*fServer && !*fNoDraw {

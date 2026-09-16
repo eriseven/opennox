@@ -16,6 +16,7 @@ import (
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 
+	"github.com/opennox/opennox/v1/internal/localization"
 	"github.com/opennox/opennox/v1/legacy/common/alloc/handles"
 )
 
@@ -36,6 +37,9 @@ var noxFontFiles = []fontFile{
 }
 
 type RenderFonts struct {
+	// LocaleDir optionally overrides fonts from the original game data directory.
+	LocaleDir string
+
 	byName map[string]*fontFile
 	byPtr  map[unsafe.Pointer]*fontFile
 	def    font.Face
@@ -54,7 +58,7 @@ func (r *RenderFonts) Load(lang int) error {
 				fname = f.FileAlt
 			}
 		}
-		fnt, err := loadFont(datapath.Data(fname), f.Size)
+		fnt, err := loadLocaleFont(datapath.Data(), r.LocaleDir, fname, f.Size)
 		if err != nil {
 			return fmt.Errorf("cannot load font: %w", err)
 		}
@@ -112,10 +116,21 @@ func (r *RenderFonts) FontPtrByName(name string) unsafe.Pointer {
 	return f.Ptr
 }
 
+func loadLocaleFont(dataDir, localeDir, name string, size int) (font.Face, error) {
+	path, err := localization.Resolve(dataDir, localeDir, name+".ttf", name+".otf", name+noxfont.Ext)
+	if err != nil {
+		return nil, err
+	}
+	return loadFont(strings.TrimSuffix(path, filepath.Ext(path)), size)
+}
+
 func loadFont(path string, size int) (font.Face, error) {
 	f, err := ifs.Open(path + ".ttf")
 	if os.IsNotExist(err) {
 		f, err = ifs.Open(path + ".otf")
+	}
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
 	}
 	if err == nil {
 		defer f.Close()
@@ -144,7 +159,7 @@ func loadFont(path string, size int) (font.Face, error) {
 	defer f.Close()
 	fnt, err := noxfont.Decode(f)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", path, err)
 	}
 	return fnt, nil
 }
