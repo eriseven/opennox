@@ -44,3 +44,7 @@ Use Go's `testing` framework and existing assertion helpers. Name tests `TestXxx
 ## Commit & Pull Request Guidelines
 
 Use short, imperative subjects matching history, such as `Fix potential buffer overflow.` Separate renames, type changes, and logic restoration into reviewable commits. Discuss significant changes in an issue first. Explain what changed and why, link related issues, and report validation. Complete both required sign-offs in `.github/pull_request_template.md`. Read `CONTRIBUTING.md` before contributing.
+
+## 64-bit Porting Work
+
+For 64-bit migration, follow [the staged plan](docs/porting-64bit.md) and update [the handoff ledger](docs/porting-64bit-progress.md). Preserve 386 behavior; Windows amd64 support remains unimplemented until the documented gates pass.
